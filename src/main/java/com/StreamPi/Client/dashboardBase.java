@@ -20,6 +20,7 @@ public abstract class dashboardBase extends StackPane {
     protected VBox settingsPane;
     protected HBox hBox;
     protected Label label0;
+    protected HBox extraButtonsBar;
     protected Region region;
     protected Button closeSettingsButton;
     protected ImageView imageView0;
@@ -32,7 +33,7 @@ public abstract class dashboardBase extends StackPane {
     protected Label label5;
     protected ToggleButton animationsToggleButton;
     protected Label label6;
-    protected ToggleButton debugModeToggleButton;
+    protected ToggleButton extraButtonsToggleButton;
     protected Label currentStatusLabel;
     protected Label unableToConnectReasonLabel;
     protected HBox settingsButtonsBar;
@@ -65,7 +66,7 @@ public abstract class dashboardBase extends StackPane {
         label5 = new Label();
         animationsToggleButton = new ToggleButton();
         label6 = new Label();
-        debugModeToggleButton = new ToggleButton();
+        extraButtonsToggleButton = new ToggleButton();
         currentStatusLabel = new Label();
         unableToConnectReasonLabel = new Label();
         settingsButtonsBar = new HBox();
@@ -141,11 +142,11 @@ public abstract class dashboardBase extends StackPane {
 
         label5.setText("Animations");
 
-        label6.setText("Debug Mode");
+        label6.setText("Extra Buttons");
 
-        debugModeToggleButton.setCache(true);
-        debugModeToggleButton.setCacheHint(javafx.scene.CacheHint.SPEED);
-        debugModeToggleButton.setOnAction(this::debugModeToggleButtonClicked);
+        extraButtonsToggleButton.setCache(true);
+        extraButtonsToggleButton.setCacheHint(javafx.scene.CacheHint.SPEED);
+        extraButtonsToggleButton.setOnAction(event -> extraButtonsToggleButtonClicked());
 
         currentStatusLabel.setText("Current Status : NOT CONNECTED");
 
@@ -172,6 +173,13 @@ public abstract class dashboardBase extends StackPane {
         hBox.getChildren().add(region);
         hBox.getChildren().add(closeSettingsButton);
         settingsPane.getChildren().add(hBox);
+
+        Button openSettingsButton = new Button("Open/Close Settings");
+        Button returnToParentLayoutButton = new Button("Return to parent layout");
+
+        extraButtonsBar = new HBox(openSettingsButton, returnToParentLayoutButton);
+        extraButtonsBar.setSpacing(10);
+
 
         Region rx = new Region();
         HBox.setHgrow(rx, Priority.ALWAYS);
@@ -200,7 +208,7 @@ public abstract class dashboardBase extends StackPane {
         HBox.setHgrow(rw, Priority.ALWAYS);
 
         hBox2.setAlignment(Pos.CENTER_LEFT);
-        hBox2.getChildren().addAll(label5, animationsToggleButton, rw, label6, debugModeToggleButton);
+        hBox2.getChildren().addAll(label5, animationsToggleButton, rw, label6, extraButtonsToggleButton);
 
         settingsPane.getChildren().addAll(hBox2);
         settingsPane.getChildren().add(currentStatusLabel);
@@ -213,6 +221,11 @@ public abstract class dashboardBase extends StackPane {
 
         settingsPane.setOpacity(0);
         actionsVBox.setOpacity(0);
+
+
+        getChildren().add(extraButtonsBar);
+        extraButtonsBar.setMaxHeight(20);
+        extraButtonsBar.toFront();
     }
 
     protected abstract void returnToParentLayerButtonClicked();
@@ -223,7 +236,7 @@ public abstract class dashboardBase extends StackPane {
 
     protected abstract void animationsToggleButtonClicked(javafx.event.ActionEvent actionEvent);
 
-    protected abstract void debugModeToggleButtonClicked(javafx.event.ActionEvent actionEvent);
+    protected abstract void extraButtonsToggleButtonClicked();
 
     protected abstract void applySettingsAndRestartButtonClicked(javafx.event.ActionEvent actionEvent);
 

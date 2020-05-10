@@ -12,7 +12,7 @@ public class Animate {
     Duration duration = Duration.millis(700);
 
     enum TransitionType{
-        FADE_IN, FADE_OUT, SLIDE_DOWN, SLIDE_UP, SLIDE_RIGHT, SLIDE_LEFT, SCALE_DOWN_TO_MIDDLE_FADE_IN
+        FADE_IN, FADE_OUT, SLIDE_DOWN, SLIDE_UP, SLIDE_RIGHT, SLIDE_LEFT
     }
 
     Node node;
@@ -72,23 +72,6 @@ public class Animate {
                 transition.setFromX(node.getScene().getWidth());
             }
             parallelTransition.getChildren().add(transition);
-        }
-        else if(transitionType == TransitionType.SCALE_UP_FADE_IN || transitionType == TransitionType.SCALE_DOWN_FADE_OUT)
-        {
-            ScaleTransition scaleTransition = new ScaleTransition(duration);
-            scaleTransition.setNode(node);
-
-            FadeTransition fadeTransition = new FadeTransition(duration);
-            fadeTransition.setNode(node);
-
-            if(transitionType == TransitionType.SCALE_UP_FADE_IN)
-            {
-                scaleTransition.setToX(1.5);
-                scaleTransition.setToY(1.5);
-
-                fadeTransition.setToValue(1.0);
-            }
-            parallelTransition.getChildren().addAll(scaleTransition,fadeTransition);
         }
 
     }

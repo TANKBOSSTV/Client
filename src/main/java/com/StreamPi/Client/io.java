@@ -38,11 +38,15 @@ public class io {
 
     public String readFileRaw(String fileName) throws Exception
     {
-        String toBeReturned;
-        BufferedReader bf = new BufferedReader(new FileReader(location+fileName));
-        toBeReturned = bf.readLine();
-        bf.close();
-        return toBeReturned;
+        StringBuilder toBeReturned = new StringBuilder();
+        FileReader fileReader = new FileReader(fileName);
+        int c;
+        while((c=fileReader.read())>-1)
+        {
+            toBeReturned.append((char) c);
+        }
+        fileReader.close();
+        return toBeReturned.toString();
     }
 
     public boolean deleteFile(String loc)
@@ -92,19 +96,34 @@ public class io {
         System.out.println(txt);
     }
 
+    String configPropFileLoc = io.class.getResource("config.properties").toExternalForm().substring(5);
+
     public HashMap<String,String> readConfig() throws Exception
     {
         HashMap<String,String> toReturn = new HashMap<>();
 
-        String content = readFileRaw(io.class.getResource("config.properties").toExternalForm().substring(5));
+        String content = readFileRaw(configPropFileLoc);
         String splitChar = "\n";
         if(content.contains("\r\n")) splitChar = "\r\n";
         for(String eachLine : content.split(splitChar))
         {
             String[] confPart = eachLine.split(" = ");
             toReturn.put(confPart[0],confPart[1]);
+            System.out.println("\""+confPart[0]+"\" : \""+confPart[1]+"\"");
         }
 
         return toReturn;
+    }
+
+    public void updateConfig(String key, String value) throws Exception
+    {
+        HashMap<String,String> config = readConfig();
+        config.replace(key,value);
+        StringBuilder toBeWritten = new StringBuilder();
+        for(String configKey : config.keySet())
+        {
+            toBeWritten.append(configKey).append(" = ").append(config.get(configKey)).append("\n");
+        }
+        writeToFile(toBeWritten.toString(),configPropFileLoc);
     }
 }

@@ -1,6 +1,5 @@
 package com.StreamPi.Client;
 
-import animatefx.animation.*;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -44,8 +43,6 @@ public class dash extends dashboardBase {
     Image doneIcon = new Image(getClass().getResourceAsStream("done.png"));
     Image failedIcon = new Image(getClass().getResourceAsStream("failed.png"));
 
-    boolean debugMode = false;
-
     int eachActionSize;
     int eachActionPadding;
 
@@ -59,8 +56,10 @@ public class dash extends dashboardBase {
             io = new io();
             config = io.readConfig();
 
-            eachActionSize = Integer.parseInt(config.get("each_action_size"));
-            eachActionPadding =Integer.parseInt(config.get("each_action_padding"));
+            eachActionSize = Integer.parseInt(config.get("each-action-size"));
+            eachActionPadding =Integer.parseInt(config.get("each-action-padding"));
+            serverIP=config.get("server-ip");
+            serverPort=Integer.parseInt(config.get("server-port"));
             actionsVBox.setSpacing(eachActionPadding);
             actionsVBox.setPadding(new Insets(3));
 
@@ -74,19 +73,17 @@ public class dash extends dashboardBase {
                 displayWidthTextField.setText(config.get("width"));
             }
 
-            if (config.get("animations_mode").equals("0")) {
+            if (config.get("animations-mode").equals("0")) {
                 animationsToggleButton.setSelected(false);
             } else {
                 animationsToggleButton.setSelected(true);
             }
 
-            if (config.get("debug_mode").equals("0")) {
-                debugMode = false;
-                debugModeToggleButton.setSelected(false);
+            if (config.get("extra-buttons").equals("0")) {
 
+                extraButtonsToggleButton.setSelected(false);
             } else {
-                debugMode = true;
-                debugModeToggleButton.setSelected(true);
+                extraButtonsToggleButton.setSelected(true);
             }
 
             actionsVBox.setOnSwipeRight(event -> returnToParentLayerButtonClicked());
@@ -118,19 +115,31 @@ public class dash extends dashboardBase {
 
     @Override
     protected void animationsToggleButtonClicked(ActionEvent event) {
-        if (animationsToggleButton.isSelected()) {
-            updateConfig("animations_mode", "1");
-        } else {
-            updateConfig("animations_mode", "0");
+        try{
+            if (animationsToggleButton.isSelected()) {
+                io.updateConfig("animations-mode", "1");
+            } else {
+                io.updateConfig("animations-mode", "0");
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
 
     @Override
-    protected void debugModeToggleButtonClicked(ActionEvent event) {
-        if (debugModeToggleButton.isSelected()) {
-            updateConfig("debug_mode", "1");
-        } else {
-            updateConfig("debug_mode", "0");
+    protected void extraButtonsToggleButtonClicked() {
+        try {
+            if (extraButtonsToggleButton.isSelected()) {
+                io.updateConfig("extra-buttons", "1");
+            } else {
+                io.updateConfig("extra-buttons", "0");
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
 
@@ -140,7 +149,7 @@ public class dash extends dashboardBase {
     {
         if(p!=currentPane)
         {
-            if (config.get("animations_mode").equals("0"))
+            if (config.get("animations-mode").equals("0"))
             {
                 if(p == pane.loading)
                 {
@@ -207,7 +216,7 @@ public class dash extends dashboardBase {
                         closeSettingsButton.setVisible(true);
                     }
                     System.out.println("Asdx");
-                    Platform.runLater(()->settingsPane.setOpacity(0));
+                    //Platform.runLater(()->settingsPane.setOpacity(0));
                     Animate z = new Animate(settingsPane, Animate.TransitionType.SLIDE_UP);
                     z.setOnFinished(event -> {
                         if(currentPane==pane.loading) loadingPane.setOpacity(0);
@@ -218,6 +227,11 @@ public class dash extends dashboardBase {
             }
 
             currentPane = p;
+
+            if(config.get("extra-buttons").equals("1"))
+            {
+                extraButtonsBar.toFront();
+            }
         }
     }
 
@@ -276,8 +290,8 @@ public class dash extends dashboardBase {
                     os = new DataOutputStream(new BufferedOutputStream(s.getOutputStream()));
 
 
-                    updateConfig("server_ip", serverIPTemp);
-                    updateConfig("server_port", serverPortField.getText());
+                    io.updateConfig("server-ip", serverIPTemp);
+                    io.updateConfig("server-port", serverPortField.getText());
                     currentStatusLabel.setTextFill(Paint.valueOf("#008000"));
                     Platform.runLater(() -> {
                         currentStatusLabel.setText("Current Status :  CONNECTED to " + serverIPTemp + ":" + serverPortTemp);
@@ -296,8 +310,7 @@ public class dash extends dashboardBase {
                         currentStatusLabel.setText("Current Status :  FAILED TO CONNECT to " + serverIPTemp + ":" + serverPortTemp);
                         unableToConnectReasonLabel.setText(e.getLocalizedMessage());
                     });
-                    if (debugMode)
-                        e.printStackTrace();
+                    e.printStackTrace();
                     isConnected = false;
                     try {
                         Thread.sleep(1500);
@@ -329,13 +342,13 @@ public class dash extends dashboardBase {
                     {
                         if(!config.get("width").equals(displayWidthTextField.getText()) && !config.get("height").equals(displayHeightTextField.getText()))
                         {
-                            updateConfig("width",displayWidthTextField.getText());
-                            updateConfig("height",displayHeightTextField.getText());
+                            io.updateConfig("width",displayWidthTextField.getText());
+                            io.updateConfig("height",displayHeightTextField.getText());
                             Platform.runLater(()->{
                                 showErrorAlert("Restart","Restart to see display changes",false);
                                 /*JFXDialog ad = showErrorAlert("Restart","Restart to see display changes",false);
                                 ad.setOnDialogClosed(event->{
-                                    if (!config.get("server_ip").equals(ipVal) || !config.get("server_port").equals(portVal) || !isConnected) {
+                                    if (!config.get("server-ip").equals(ipVal) || !config.get("server-port").equals(portVal) || !isConnected) {
                                         checkServerConnection();
                                     }
                                 });*/
@@ -343,7 +356,7 @@ public class dash extends dashboardBase {
                         }
                         else
                         {
-                            if (!config.get("server_ip").equals(ipVal) || !config.get("server_port").equals(portVal) || !isConnected) {
+                            if (!config.get("server-ip").equals(ipVal) || !config.get("server-port").equals(portVal) || !isConnected) {
                                 checkServerConnection();
                             }
                         }
@@ -412,18 +425,6 @@ public class dash extends dashboardBase {
         }
     }
 
-    public void updateConfig(String keyName, String newValue){
-        try {
-            config.put(keyName, newValue);
-            String toBeWritten = config.get("width")+ separator + config.get("height") +separator +  config.get("server_ip") + separator + config.get("server_port") + separator + config.get("device_nick_name") + separator + config.get("animations_mode") + separator + config.get("debug_mode") + separator + config.get("each_action_size") + separator + config.get("each_action_padding") + separator;
-            io.writeToFile(toBeWritten, "config");
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
     final String CLIENT_VERSION = "0.0.7";
     Task socketCommTask = new Task<Void>() {
         @Override
@@ -437,7 +438,7 @@ public class dash extends dashboardBase {
                         String[] response = responseFromServerRaw.split(separator);
                         String msgHeading = response[0];
                         if (msgHeading.equals("client_details")) {
-                            writeToOS("client_details" + separator + thisDeviceIP + separator + config.get("device_nick_name") + separator + config.get("width") + separator + config.get("height") + separator + maxActionsPerRow + separator + maxNoOfRows + separator + eachActionSize + separator + eachActionPadding + separator + CLIENT_VERSION + separator);
+                            writeToOS("client_details" + separator + thisDeviceIP + separator + config.get("device-nickname") + separator + config.get("width") + separator + config.get("height") + separator + maxActionsPerRow + separator + maxNoOfRows + separator + eachActionSize + separator + eachActionPadding + separator + CLIENT_VERSION + separator);
                             //client_details::<deviceIP>::<nick_name>::<device_width>::<device_height>::<max_actions_per_row>::<max_no_of_rows>::
                             // <maxcols>
                         } else if (msgHeading.equals("action_success_response")) {
@@ -463,8 +464,8 @@ public class dash extends dashboardBase {
                             if (!(eachActionSize + "").equals(newActionSizeString) || !(eachActionPadding + "").equals(newActionPaddingString)) {
                                 eachActionPadding = Integer.parseInt(newActionPaddingString);
                                 eachActionSize = Integer.parseInt(newActionSizeString);
-                                updateConfig("each_action_size", newActionSizeString);
-                                updateConfig("each_action_padding", newActionPaddingString);
+                                io.updateConfig("each-action-size", newActionSizeString);
+                                io.updateConfig("each-action-padding", newActionPaddingString);
 
                                 System.out.println("XXXXX : "+config.get("width")+","+config.get("height"));
                                 maxActionsPerRow = (Integer.parseInt(config.get("width")) / (eachActionSize + eachActionPadding));
@@ -545,8 +546,7 @@ public class dash extends dashboardBase {
                 } catch (Exception e) {
                     if (!isShutdown) {
                         checkServerConnection();
-                        if (debugMode)
-                            e.printStackTrace();
+                        e.printStackTrace();
                     }
                 }
             }
@@ -725,18 +725,18 @@ public class dash extends dashboardBase {
 
         Platform.runLater(() -> {
 
-            settingsPane.setVisible(false);
+            /*settingsPane.setVisible(false);
             loadingPane.setVisible(false);
 
             if (mode == 0) {
-                FadeOutRight gay = new FadeOutRight(actionsVBox);
-                gay.setSpeed(3.0);
+                Animate gay = new Animate(actionsVBox, Animate.TransitionType.SLIDE_RIGHT);
+                //gay.setSpeed(3.0);
                 gay.play();
                 gay.setOnFinished(event -> {
                     actionsVBox.getChildren().clear();
                     actionsVBox.getChildren().addAll(rows);
-                    FadeInLeft fag = new FadeInLeft(actionsVBox);
-                    fag.setSpeed(2.0);
+                    Animate fag = new Animate(actionsVBox, Animate.TransitionType.SLIDE_LEFT);
+                    //fag.setSpeed(2.0);
                     fag.play();
                     fag.setOnFinished(event1->{
                         settingsPane.setVisible(true);
@@ -744,7 +744,7 @@ public class dash extends dashboardBase {
                     });
                 });
             } else if (mode == 1) {
-                FadeOutLeft gay = new FadeOutLeft(actionsVBox);
+                Animate gay = new Animate(actionsVBox, Animate.TransitionType.SLIDE_LEFT);
                 gay.setSpeed(3.0);
                 gay.play();
                 gay.setOnFinished(event -> {
@@ -767,9 +767,16 @@ public class dash extends dashboardBase {
             }
 
 
+            */
+
+            actionsVBox.getChildren().clear();
+            actionsVBox.getChildren().addAll(rows);
+
+            //settingsPane.setVisible(true);
+            //loadingPane.setVisible(true);
+
             if (layer != -1)
                 currentLayer = layer;
-
         });
     }
 
@@ -873,8 +880,7 @@ public class dash extends dashboardBase {
                 writeToOS(rawActionContent);
             } catch (Exception e) {
                 checkServerConnection();
-                if (debugMode)
-                    e.printStackTrace();
+                e.printStackTrace();
             }
         }
     }
