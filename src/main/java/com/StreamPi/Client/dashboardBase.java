@@ -8,7 +8,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
-public abstract class dashboardBase extends StackPane {
+public abstract class dashboardBase extends BorderPane {
 
     protected StackPane alertStackPane;
     protected VBox actionsVBox;
@@ -40,8 +40,12 @@ public abstract class dashboardBase extends StackPane {
     protected Button applySettingsAndRestartButton;
     protected TextField displayWidthTextField;
     protected TextField displayHeightTextField;
+    protected StackPane mainPane;
 
     public dashboardBase() {
+
+        mainPane = new StackPane();
+
         alertStackPane = new StackPane();
         actionsVBox = new VBox();
         goodbyePane = new VBox();
@@ -163,12 +167,12 @@ public abstract class dashboardBase extends StackPane {
 
         setOnSwipeUp(event->openSettings());
 
-        getChildren().add(alertStackPane);
-        getChildren().add(actionsVBox);
+        mainPane.getChildren().add(alertStackPane);
+        mainPane.getChildren().add(actionsVBox);
         goodbyePane.getChildren().add(label);
-        getChildren().add(goodbyePane);
+        mainPane.getChildren().add(goodbyePane);
         loadingPane.getChildren().add(mainSpinner);
-        getChildren().add(loadingPane);
+        mainPane.getChildren().add(loadingPane);
         hBox.getChildren().add(label0);
         hBox.getChildren().add(region);
         hBox.getChildren().add(closeSettingsButton);
@@ -178,6 +182,7 @@ public abstract class dashboardBase extends StackPane {
         Button returnToParentLayoutButton = new Button("Return to parent layout");
 
         extraButtonsBar = new HBox(openSettingsButton, returnToParentLayoutButton);
+        extraButtonsBar.setStyle("-fx-background-color:red;");
         extraButtonsBar.setSpacing(10);
 
 
@@ -215,15 +220,15 @@ public abstract class dashboardBase extends StackPane {
         settingsPane.getChildren().add(unableToConnectReasonLabel);
         settingsButtonsBar.getChildren().add(applySettingsAndRestartButton);
         settingsPane.getChildren().add(settingsButtonsBar);
-        getChildren().add(settingsPane);
+        mainPane.getChildren().add(settingsPane);
 
         loadingPane.toFront();
 
         settingsPane.setOpacity(0);
         actionsVBox.setOpacity(0);
 
-
-        getChildren().add(extraButtonsBar);
+        setCenter(mainPane);
+        setTop(extraButtonsBar);
         extraButtonsBar.setMaxHeight(20);
         extraButtonsBar.toFront();
     }

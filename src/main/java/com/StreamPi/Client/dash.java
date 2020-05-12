@@ -1,5 +1,6 @@
 package com.StreamPi.Client;
 
+import animatefx.animation.*;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -80,9 +81,10 @@ public class dash extends dashboardBase {
             }
 
             if (config.get("extra-buttons").equals("0")) {
-
+                extraButtonsBar.setVisible(false);
                 extraButtonsToggleButton.setSelected(false);
             } else {
+                extraButtonsBar.setVisible(true);
                 extraButtonsToggleButton.setSelected(true);
             }
 
@@ -133,8 +135,10 @@ public class dash extends dashboardBase {
         try {
             if (extraButtonsToggleButton.isSelected()) {
                 io.updateConfig("extra-buttons", "1");
+                extraButtonsBar.setVisible(true);
             } else {
                 io.updateConfig("extra-buttons", "0");
+                extraButtonsBar.setVisible(false);
             }
         }
         catch (Exception e)
@@ -185,7 +189,8 @@ public class dash extends dashboardBase {
             {
                 if(p== pane.loading)
                 {
-                    new Animate(loadingPane, Animate.TransitionType.FADE_IN).play();
+                    FadeIn fadeIn = new FadeIn(loadingPane);
+                    fadeIn.play();
                     Platform.runLater(loadingPane::toFront);
                 }
                 else if(p== pane.actions)
@@ -193,7 +198,7 @@ public class dash extends dashboardBase {
                     if(currentPane == pane.settings)
                     {
                         System.out.println("CCA");
-                        Animate s = new Animate(settingsPane, Animate.TransitionType.SLIDE_DOWN);
+                        FadeOutDown s = new FadeOutDown(settingsPane);
                         s.setOnFinished(event -> {
                             actionsVBox.toFront();
                             Platform.runLater(actionsVBox::toFront);
@@ -205,7 +210,7 @@ public class dash extends dashboardBase {
                     else
                     {
                         Platform.runLater(actionsVBox::toFront);
-                        new Animate(actionsVBox, Animate.TransitionType.FADE_IN).play();
+                        new FadeIn(actionsVBox).play();
                     }
                 }
                 else if(p== pane.settings)
@@ -217,21 +222,18 @@ public class dash extends dashboardBase {
                     }
                     System.out.println("Asdx");
                     //Platform.runLater(()->settingsPane.setOpacity(0));
-                    Animate z = new Animate(settingsPane, Animate.TransitionType.SLIDE_UP);
+                    FadeInUp z = new FadeInUp(settingsPane);
                     z.setOnFinished(event -> {
                         if(currentPane==pane.loading) loadingPane.setOpacity(0);
                     });
                     z.play();
-                    Platform.runLater(settingsPane::toFront);
+                    Platform.runLater(()->{
+                        settingsPane.toFront();
+                    });
                 }
             }
 
             currentPane = p;
-
-            if(config.get("extra-buttons").equals("1"))
-            {
-                extraButtonsBar.toFront();
-            }
         }
     }
 
@@ -584,9 +586,9 @@ public class dash extends dashboardBase {
                                                             lol3.play();*/
 
                         Platform.runLater(() -> eachAction.setDisable(false));
-                        Animate lol = new Animate(iconPane, Animate.TransitionType.FADE_IN);
+                        FadeIn lol = new FadeIn(iconPane);
                         lol.setOnFinished(event -> {
-                            Animate lol2 = new Animate(iconPane, Animate.TransitionType.FADE_OUT);
+                            FadeOut lol2 = new FadeOut(iconPane);
                             lol2.setDelay(Duration.millis(200));
                             lol2.play();
                             lol2.setOnFinished(event1 -> {
