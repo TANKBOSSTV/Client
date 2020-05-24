@@ -9,16 +9,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.CacheHint;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TouchEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.text.Font;
 import javafx.util.Duration;
 
 import java.io.*;
@@ -30,7 +26,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 
-public class dash extends dashboardBase {
+public class dashOld extends dashboardBaseOld {
 
     int maxActionsPerRow;
     int maxNoOfRows;
@@ -51,7 +47,7 @@ public class dash extends dashboardBase {
 
     public io io;
 
-    public dash() {
+    public dashOld() {
         try
         {
             io = new io();

@@ -1,248 +1,433 @@
+/*
+dashboardBase.java
+
+UI Logic for StreamPi Client
+
+Author(s) : Debayan Sutradhar (dubbadhar)
+
+Last Edited on 24th May 2020
+*/
+
 package com.StreamPi.Client;
+
+import animatefx.animation.*;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
-import javafx.scene.image.Image;
+import javafx.scene.CacheHint;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
+import org.kordamp.ikonli.javafx.FontIcon;
+
+import java.util.HashMap;
 
 public abstract class dashboardBase extends BorderPane {
 
-    protected StackPane alertStackPane;
-    protected VBox actionsVBox;
-    protected VBox goodbyePane;
-    protected Label label;
-    protected VBox loadingPane;
-    protected ProgressIndicator mainSpinner;
-    //protected ImageView mainSpinner;
-    protected VBox settingsPane;
-    protected HBox hBox;
-    protected Label label0;
-    protected HBox extraButtonsBar;
-    protected Region region;
-    protected Button closeSettingsButton;
-    protected ImageView imageView0;
-    protected HBox hBox0;
-    protected Label label1;
-    protected TextField serverIPField;
-    protected Label label3;
-    protected TextField serverPortField;
-    protected HBox hBox2;
-    protected Label label5;
-    protected ToggleButton animationsToggleButton;
-    protected Label label6;
-    protected ToggleButton extraButtonsToggleButton;
-    protected Label currentStatusLabel;
-    protected Label unableToConnectReasonLabel;
-    protected HBox settingsButtonsBar;
-    protected Button applySettingsAndRestartButton;
-    protected TextField displayWidthTextField;
-    protected TextField displayHeightTextField;
-    protected StackPane mainPane;
+    StackPane actionsPane;
+    VBox settingsPane, goodbyePane, loadingPane;
 
-    public dashboardBase() {
+    StackPane mainPane;
+    private HashMap<String,String> config;
+    private Button settingsButton;
 
-        mainPane = new StackPane();
+    HBox bottomButtonBar;
+    public void loadNodes()
+    {
+        //runs after config has been loaded
 
-        alertStackPane = new StackPane();
-        actionsVBox = new VBox();
-        goodbyePane = new VBox();
-        label = new Label();
-        loadingPane = new VBox();
-        loadingPane.setAlignment(Pos.CENTER);
-        mainSpinner = new ProgressIndicator();
-        mainSpinner.setProgress(-1);
-        mainSpinner.setPrefSize(50,50);
-        settingsPane = new VBox();
-        hBox = new HBox();
-        label0 = new Label();
-        region = new Region();
-        closeSettingsButton = new Button();
-        imageView0 = new ImageView();
-        hBox0 = new HBox();
-        label1 = new Label();
-        serverIPField = new TextField();
-        label3 = new Label();
-        serverPortField = new TextField();
-        hBox2 = new HBox();
-        label5 = new Label();
-        animationsToggleButton = new ToggleButton();
-        label6 = new Label();
-        extraButtonsToggleButton = new ToggleButton();
-        currentStatusLabel = new Label();
-        unableToConnectReasonLabel = new Label();
-        settingsButtonsBar = new HBox();
-        applySettingsAndRestartButton = new Button();
+        //Load font
+        Font.loadFont(getClass().getResource("Roboto.ttf").toExternalForm().replace("%20",""), 13);
 
-        Font.loadFont(getClass().getResource("Roboto.ttf").toExternalForm().replace("%20"," "), 13);
-
+        //apply stylesheet
         getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+
+        //add style "pane" for every pane (dashboardBase itself is a pane with many panes)
         getStyleClass().add("pane");
+        //apply current theme
+        setStyle("bg-color: "+config.get("bg-color")+";font-color: "+config.get("font-color")+";");
 
-        actionsVBox.setAlignment(javafx.geometry.Pos.CENTER);
-        VBox.setVgrow(actionsVBox,Priority.ALWAYS);
-        actionsVBox.setCache(true);
-        actionsVBox.setCacheHint(javafx.scene.CacheHint.SPEED);
-        actionsVBox.getStyleClass().add("pane");
 
-        goodbyePane.setAlignment(javafx.geometry.Pos.CENTER);
-        goodbyePane.getStyleClass().add("pane");
-        goodbyePane.setVisible(false);
 
-        label.setText("Goodbye");
+        //init of base nodes
 
-        loadingPane.setCache(true);
-        loadingPane.setCacheHint(javafx.scene.CacheHint.SPEED);
-        loadingPane.getStyleClass().add("pane");
+        //bottomButtonBar - will contain the Settings Button
+        bottomButtonBar = new HBox();
+        bottomButtonBar.getStyleClass().add("pane");
+        bottomButtonBar.setAlignment(Pos.CENTER_RIGHT);
+        settingsButton = new Button();
+        settingsButton.setGraphic(getIcon("gmi-settings"));
+        settingsButton.setOnMouseClicked(event -> {
+            if(currentPane == PANE.settings)
+            {
+                closeSettings();
+                currentPane = PANE.actions;
+            }
+            else
+                switchPane(PANE.settings);
+        });
+        bottomButtonBar.getChildren().add(settingsButton);
+
+
+
+        //mainPane - will contain actionsPane, settingsPane and also goodbyePane
+        mainPane = new StackPane();
+        mainPane.setPadding(new Insets(10,10,0,10));
+        mainPane.getStyleClass().add("pane");
+
+        //Init children of mainPane
+        actionsPane = new StackPane(); // Where actions will be stored
+        actionsPane.getStyleClass().add("pane"); //Adding stylesheet class to actionsPane
+
+        settingsPane = getSettingsPane(); // Will contain Settings
+
+        goodbyePane = getGoodbyePane(); // Will contain goodbye message
+
+        loadingPane = getLoadingPane(); // Will contain loading spinner and a message
+
+        //add children of mainPane to mainPane
+        mainPane.getChildren().addAll(actionsPane, settingsPane, goodbyePane, loadingPane);
+
+
+
+        //set all the children nodes opacity to 0
+        //actionsPane.setOpacity(0);
+        //settingsPane.setOpacity(0);
+        //goodbyePane.setOpacity(0);
+        //loadingPane.setOpacity(0);
+        //settingsPane.toFront();
+
+        //enable caching to improve performance (Especially on embedded and Mobile)
+        actionsPane.setCache(true);
+        actionsPane.setCacheHint(CacheHint.SPEED);
 
         settingsPane.setCache(true);
-        settingsPane.setCacheHint(javafx.scene.CacheHint.SPEED);
-        settingsPane.setSpacing(10.0);
-        settingsPane.getStyleClass().add("pane");
+        settingsPane.setCacheHint(CacheHint.SPEED);
 
-        //StackPane.setMargin(this, new Insets(15));
-        setPadding(new Insets(15));
+        loadingPane.setCache(true);
+        loadingPane.setCacheHint(CacheHint.SPEED);
 
-        label0.setText("Settings");
-        //HBox.setMargin(label0, new Insets(15,0,0,0));
-        label0.getStyleClass().add("h3");
-        label0.getStyleClass().add("HeaderLabel");
+        goodbyePane.setCache(true);
+        goodbyePane.setCacheHint(CacheHint.SPEED);
 
-        HBox.setHgrow(region, Priority.ALWAYS);
+        settingsButton.setCache(true);
+        settingsButton.setCacheHint(CacheHint.SPEED);
 
-        closeSettingsButton.setCache(true);
-        closeSettingsButton.setCacheHint(javafx.scene.CacheHint.SPEED);
-        closeSettingsButton.setOnAction(this::closeSettingsButtonClicked);
-        closeSettingsButton.setPrefHeight(60.0);
-        closeSettingsButton.setPrefWidth(55.0);
-        closeSettingsButton.setText(" ");
+        setCache(true);
+        setCacheHint(CacheHint.SPEED);
 
-        imageView0.setFitHeight(35.0);
-        imageView0.setFitWidth(48.0);
-        imageView0.setPickOnBounds(true);
-        imageView0.setPreserveRatio(true);
-        imageView0.setImage(new Image(getClass().getResource("cancel.png").toExternalForm()));
-        closeSettingsButton.setGraphic(imageView0);
-
-        hBox0.setSpacing(10.0);
-
-        label1.setText("Server IP");
-
-        serverIPField.setCache(true);
-        serverIPField.setCacheHint(javafx.scene.CacheHint.SPEED);
-
-        label3.setText("Port");
-
-        serverPortField.setCache(true);
-        serverPortField.setCacheHint(javafx.scene.CacheHint.SPEED);
-
-        hBox2.setSpacing(10.0);
-
-        animationsToggleButton.setCache(true);
-        animationsToggleButton.setCacheHint(javafx.scene.CacheHint.SPEED);
-        animationsToggleButton.setOnAction(this::animationsToggleButtonClicked);
-
-        label5.setText("Animations");
-
-        label6.setText("Extra Buttons");
-
-        extraButtonsToggleButton.setCache(true);
-        extraButtonsToggleButton.setCacheHint(javafx.scene.CacheHint.SPEED);
-        extraButtonsToggleButton.setOnAction(event -> extraButtonsToggleButtonClicked());
-
-        currentStatusLabel.setText("Current Status : NOT CONNECTED");
-
-        unableToConnectReasonLabel.setText("Unable to Connect (<Localised Message>)");
-
-        settingsButtonsBar.setAlignment(javafx.geometry.Pos.CENTER);
-        settingsButtonsBar.setSpacing(25.0);
-
-        applySettingsAndRestartButton.setCache(true);
-        applySettingsAndRestartButton.setCacheHint(javafx.scene.CacheHint.SPEED);
-        applySettingsAndRestartButton.setOnAction(this::applySettingsAndRestartButtonClicked);
-        applySettingsAndRestartButton.setTextFill(Color.GREEN);
-        applySettingsAndRestartButton.setText("Apply Settings And Restart");
-
-        setOnSwipeUp(event->openSettings());
-
-        mainPane.getChildren().add(alertStackPane);
-        mainPane.getChildren().add(actionsVBox);
-        goodbyePane.getChildren().add(label);
-        mainPane.getChildren().add(goodbyePane);
-        loadingPane.getChildren().add(mainSpinner);
-        mainPane.getChildren().add(loadingPane);
-        hBox.getChildren().add(label0);
-        hBox.getChildren().add(region);
-        hBox.getChildren().add(closeSettingsButton);
-        settingsPane.getChildren().add(hBox);
-
-        Button openSettingsButton = new Button("Open/Close Settings");
-        Button returnToParentLayoutButton = new Button("Return to parent layout");
-
-        extraButtonsBar = new HBox(openSettingsButton, returnToParentLayoutButton);
-        extraButtonsBar.setStyle("-fx-background-color:red;");
-        extraButtonsBar.setSpacing(10);
-
-
-        Region rx = new Region();
-        HBox.setHgrow(rx, Priority.ALWAYS);
-        hBox0.getChildren().addAll(label1, serverIPField, rx, label3, serverPortField);
-        hBox0.setAlignment(Pos.CENTER_LEFT);
-        settingsPane.getChildren().add(hBox0);
-
-        HBox hBox1 = new HBox();
-        hBox1.setSpacing(10);
-        Label l1 = new Label("Display Width");
-        displayWidthTextField = new TextField();
-        Region rx2 = new Region();
-        Label l2 = new Label("Display Height");
-        displayHeightTextField = new TextField();
-        HBox.setHgrow(rx2, Priority.ALWAYS);
-        hBox1.getChildren().addAll(l1,displayWidthTextField, rx2, l2,displayHeightTextField);
-
-        if(Main.buildPlatform != Main.platform.android && Main.buildPlatform != Main.platform.ios)
-        {
-            settingsPane.getChildren().add(hBox1);
-        }
-
-
-
-        Region rw = new Region();
-        HBox.setHgrow(rw, Priority.ALWAYS);
-
-        hBox2.setAlignment(Pos.CENTER_LEFT);
-        hBox2.getChildren().addAll(label5, animationsToggleButton, rw, label6, extraButtonsToggleButton);
-
-        settingsPane.getChildren().addAll(hBox2);
-        settingsPane.getChildren().add(currentStatusLabel);
-        settingsPane.getChildren().add(unableToConnectReasonLabel);
-        settingsButtonsBar.getChildren().add(applySettingsAndRestartButton);
-        settingsPane.getChildren().add(settingsButtonsBar);
-        mainPane.getChildren().add(settingsPane);
-
-        loadingPane.toFront();
-
-        settingsPane.setOpacity(0);
-        actionsVBox.setOpacity(0);
-
+        //finally add base nodes to the base Scene
         setCenter(mainPane);
-        setTop(extraButtonsBar);
-        extraButtonsBar.setMaxHeight(20);
-        extraButtonsBar.toFront();
+        setBottom(bottomButtonBar);
     }
 
-    protected abstract void returnToParentLayerButtonClicked();
+    private TextField serverIPTextField, serverPortTextField, deviceNicknameTextField;
+    private Button connectDisconnectButton;
+    private VBox getSettingsPane()
+    {
+        //This returns the entire Settings Pane node
 
-    protected abstract void openSettings();
+        //base pane for the nodes in settings pane
+        VBox settingsVBox = new VBox();
+        settingsVBox.getStyleClass().add("pane");
+        settingsVBox.setSpacing(5);
 
-    protected abstract void closeSettingsButtonClicked(javafx.event.ActionEvent actionEvent);
+        //1st row, contains settings heading and the close button
+        HBox row0 = new HBox();
+        Label headingLabel = new Label("Settings");
+        headingLabel.getStyleClass().add("h2");
+        headingLabel.setPadding(new Insets(0,0,10,0));
+        Region r0 = new Region();
+        HBox.setHgrow(r0, Priority.ALWAYS);
+        Button settingsCloseButton = new Button();
+        settingsCloseButton.setGraphic(new ImageView());
+        settingsCloseButton.setOnMouseClicked(event -> closeSettings());
 
-    protected abstract void animationsToggleButtonClicked(javafx.event.ActionEvent actionEvent);
+        row0.getChildren().addAll(headingLabel, r0, settingsCloseButton);
 
-    protected abstract void extraButtonsToggleButtonClicked();
+        //2nd row, contains server ip text field
+        HBox row1 = new HBox();
+        row1.setSpacing(5);
+        Label serverIPLabel = new Label("Server IP");
+        Region r1 = new Region();
+        HBox.setHgrow(r1,Priority.ALWAYS);
+        serverIPTextField = new TextField();
+        row1.getChildren().addAll(serverIPLabel, r1, serverIPTextField);
 
-    protected abstract void applySettingsAndRestartButtonClicked(javafx.event.ActionEvent actionEvent);
+        //3rd row, contains server port text field
+        HBox row2 = new HBox();
+        row2.setSpacing(5);
+        Label serverPortLabel = new Label("Server Port");
+        Region r2 = new Region();
+        HBox.setHgrow(r2,Priority.ALWAYS);
+        serverPortTextField = new TextField();
+        row2.getChildren().addAll(serverPortLabel, r2, serverPortTextField);
 
+        //4th row, contains device nickname text field
+        HBox row3 = new HBox();
+        row3.setSpacing(5);
+        Label deviceNicknameLabel = new Label("Device Nickname");
+        Region r3 = new Region();
+        HBox.setHgrow(r3, Priority.ALWAYS);
+        deviceNicknameTextField = new TextField();
+        row3.getChildren().addAll(deviceNicknameLabel, r3, deviceNicknameTextField);
+
+        //5th row, contains the buttons for settings
+        HBox row4 = new HBox();
+        row4.setAlignment(Pos.CENTER);
+        row4.setSpacing(10);
+
+        connectDisconnectButton = new Button("Connect");
+        connectDisconnectButton.getStyleClass().add("btn-green");
+        //assign onclick to the button
+        connectDisconnectButton.setOnMouseClicked(event -> onConnectDisconnectButtonClicked());
+
+        Button applySettingsButton = new Button("Apply Settings");
+        applySettingsButton.getStyleClass().add("btn-green");
+        //assign onclick to the button
+        applySettingsButton.setOnMouseClicked(event -> onApplySettingsButtonClicked());
+
+        row4.getChildren().addAll(connectDisconnectButton, applySettingsButton);
+
+        //6th row, contains the buttons for settings
+        HBox row5 = new HBox();
+        row5.setAlignment(Pos.CENTER);
+        row5.setSpacing(10);
+        Button restartButton = new Button("Restart");
+        restartButton.getStyleClass().add("btn-orange");
+        restartButton.setOnMouseClicked(event -> onRestartButtonClicked());
+
+        Button shutdownButton = new Button("Shutdown");
+        shutdownButton.getStyleClass().add("btn-orange");
+        shutdownButton.setOnMouseClicked(event -> onShutdownButtonClicked());
+
+        Button quitButton = new Button("Quit");
+        quitButton.getStyleClass().add("btn-red");
+        quitButton.setOnMouseClicked(event -> onQuitButtonClicked());
+
+        row5.getChildren().addAll(restartButton, shutdownButton, quitButton);
+
+        //add the children to the settings vbox, and return it
+        settingsVBox.getChildren().addAll(row0, row1, row2, row3, row4, row5);
+        return settingsVBox;
+    }
+
+    private FontIcon getIcon(String iconLiteral)
+    {
+        //Gets icons from ikonli library. Icon cheat sheet : https://kordamp.org/ikonli/cheat-sheet-material.html
+        FontIcon fontIcon = new FontIcon();
+        fontIcon.setIconLiteral(iconLiteral);
+        fontIcon.setIconColor(Paint.valueOf(config.get("font-color")));
+        fontIcon.setFont(Font.font(30));
+        return fontIcon;
+    }
+
+    private VBox getGoodbyePane()
+    {
+        //This returns the entire goodbye pane node
+
+        //Base pane
+        VBox goodbyePane = new VBox();
+        goodbyePane.setAlignment(Pos.CENTER);
+        goodbyePane.getStyleClass().add("pane");
+
+        //big goodbye label (Thanks to windows phone)
+        Label goodbyeLabel = new Label("Goodbye");
+        goodbyeLabel.setFont(Font.font(20));
+
+        //add them and return the node
+        goodbyePane.getChildren().add(goodbyeLabel);
+        return goodbyePane;
+    }
+
+    private ProgressIndicator loadingIndicator;
+    private Label loadingInfoLabel;
+    private VBox getLoadingPane()
+    {
+        //This returns the loading screen
+
+        //Base pane
+        VBox loadingPane = new VBox();
+        loadingPane.setSpacing(5);
+        loadingPane.setAlignment(Pos.CENTER);
+
+        //Loading Indicator (will be customised to match with the design language later)
+        loadingIndicator = new ProgressIndicator(0);
+        //enable caching to improve performance
+        loadingIndicator.setCache(true);
+        loadingIndicator.setCacheHint(CacheHint.SPEED);
+
+        //Loading info Label
+        loadingInfoLabel = new Label();
+
+        //Add them and return the node
+        loadingPane.getChildren().addAll(loadingIndicator, loadingInfoLabel);
+        return loadingPane;
+    }
+
+    public enum PANE
+    {
+        actions, settings, goodbye, loading
+    }
+
+    private PANE currentPane = null;
+
+    public void switchPane(PANE requestedPane)
+    {
+        //This switches the current Pane
+
+        //Perform check if the current pane is already the same as the requested pane
+        if(currentPane == requestedPane)
+            io.pln("Already switched to "+requestedPane+"!");
+        else
+        {
+            io.pln("Switching from "+currentPane+" to "+requestedPane+" ...");
+
+            // If Settings open, close it
+            if (currentPane == PANE.settings) {
+                closeSettings();
+            }
+
+            //Now perform required animations
+            switch (requestedPane)
+            {
+                case actions:
+                    new FadeIn(actionsPane).play(); // Fade In Animation
+                    actionsPane.toFront();
+                    break;
+                case goodbye:
+                    new FadeIn(goodbyePane).play(); // Fade In Animation
+                    goodbyePane.toFront();
+                    break;
+                case loading:
+                    new FadeIn(loadingPane).play(); // Fade In Animation
+                    loadingPane.toFront();
+                    break;
+                case settings:
+                    new SlideInUp(settingsPane).play(); //Sliding Animation for Settings Pane
+                    settingsButton.setGraphic(getIcon("gmi-close"));
+                    settingsPane.toFront();
+            }
+
+            //Finally, set current pane as requested pane
+            currentPane = requestedPane;
+
+            io.pln("... Done!");
+        }
+    }
+
+    private void closeSettings()
+    {
+        //Set Button Icon to normal
+        settingsButton.setGraphic(getIcon("gmi-settings"));
+
+        //Closes settings with Slide Down Animation
+        SlideOutDown d = new SlideOutDown(settingsPane);
+        //d.setOnFinished(event -> settingsPane.toBack());
+        d.play();
+    }
+
+    //setProgress Methods for setting the required value and info
+    public void setProgress(String info, boolean isLoading)
+    {
+        if(isLoading) loadingIndicator.setProgress(-1);
+        else loadingIndicator.setProgress(0);
+
+        loadingInfoLabel.setText(info);
+    }
+
+    public void setProgress(boolean isLoading)
+    {
+        if(isLoading) loadingIndicator.setProgress(-1);
+        else loadingIndicator.setProgress(0);
+    }
+
+    public void setProgress(String info)
+    {
+        loadingInfoLabel.setText(info);
+    }
+
+    public void setConnectDisConnectButtonStatus(boolean isConnected)
+    {
+        //This method changes font colour of connectDisconnectButton when connected/disconnected
+        if(isConnected)
+        {
+            connectDisconnectButton.setText("Disconnect");
+            connectDisconnectButton.getStyleClass().remove("btn-green");
+            connectDisconnectButton.getStyleClass().add("btn-red");
+        }
+        else
+        {
+            connectDisconnectButton.setText("Connect");
+            connectDisconnectButton.getStyleClass().remove("btn-red");
+            connectDisconnectButton.getStyleClass().add("btn-green");
+        }
+    }
+
+    private boolean currentSettingsButtonStatus = true;
+    public void setSettingsButtonStatus(boolean show)
+    {
+        //This method hides/shows the Settings Button in the bottom left
+        if(currentSettingsButtonStatus!=show)
+        {
+            currentSettingsButtonStatus = show;
+            AnimationFX s;
+            if(show)
+            {
+                s = new SlideInUp(settingsButton);
+                s.setOnFinished(event -> settingsButton.setDisable(false));
+            }
+            else
+            {
+                s = new SlideOutDown(settingsButton);
+                s.setOnFinished(event -> settingsButton.setDisable(true));
+            }
+            s.play();
+        }
+    }
+
+    //Getter methods for text fields
+    public String getServerIPFieldText()
+    {
+        return serverIPTextField.getText();
+    }
+
+    public String getServerPortFieldText()
+    {
+        return serverPortTextField.getText();
+    }
+
+    public String getDeviceNicknameFieldText()
+    {
+        return deviceNicknameTextField.getText();
+    }
+
+    //getter for config
+    public String getConfigValue(String key)
+    {
+        return config.get(key);
+    }
+
+    //setters for config
+    public void setConfigValue(String key, String value)
+    {
+        config.put(key, value);
+    }
+
+    public void setConfig(HashMap<String, String> config)
+    {
+        this.config = config;
+    }
+
+    //Abstract on clicked methods for the main dashboard Class
+    public abstract void onConnectDisconnectButtonClicked();
+    public abstract void onApplySettingsButtonClicked();
+    public abstract void onRestartButtonClicked();
+    public abstract void onShutdownButtonClicked();
+    public abstract void onQuitButtonClicked();
 }

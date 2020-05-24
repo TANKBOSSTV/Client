@@ -91,7 +91,7 @@ public class io {
         fs.close();
     }
 
-    public void pln(String txt)
+    public static void pln(String txt)
     {
         System.out.println(txt);
     }
