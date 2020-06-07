@@ -5,11 +5,11 @@ import javafx.scene.image.Image;
 import java.io.*;
 import java.util.HashMap;
 
-public class io {
+public class IO {
     String location;
-    public io() throws Exception
+    public IO() throws Exception
     {
-        if(Main.buildPlatform == Main.platform.android)
+        if(Main.buildPlatform == Platform.android)
         {
             location = "/storage/emulated/0/Android/in.dubbadhar.StreamPiClient/";
         }
@@ -96,7 +96,7 @@ public class io {
         System.out.println(txt);
     }
 
-    String configPropFileLoc = io.class.getResource("config.properties").toExternalForm().substring(5);
+    String configPropFileLoc = IO.class.getResource("config.properties").toExternalForm().substring(5);
 
     public HashMap<String,String> readConfig() throws Exception
     {

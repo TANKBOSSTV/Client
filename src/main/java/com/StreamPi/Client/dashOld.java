@@ -45,12 +45,12 @@ public class dashOld extends dashboardBaseOld {
 
     public HashMap<String, String> config;
 
-    public io io;
+    public IO io;
 
     public dashOld() {
         try
         {
-            io = new io();
+            io = new IO();
             config = io.readConfig();
 
             eachActionSize = Integer.parseInt(config.get("each-action-size"));

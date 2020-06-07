@@ -8,12 +8,16 @@ import java.util.HashMap;
 
 public class Main extends Application {
 
+    static IO io;
+    final static Platform buildPlatform = Platform.windows;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
-        io io = new io();
+        io = new IO();
+
         Scene s;
         HashMap<String,String> config = io.readConfig();
-        if(!buildPlatform.equals(platform.ios) && !buildPlatform.equals(platform.android))
+        if(!buildPlatform.equals(Platform.ios) && !buildPlatform.equals(Platform.android))
             s = new Scene(new dashboard(config), Integer.parseInt(config.get("width")), Integer.parseInt(config.get("height")));
         else
             s = new Scene(new dashboard(config));
@@ -21,11 +25,6 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    enum platform{
-        ios, android, raspberrypi, windows, mac, linux;
-    }
-
-    static platform buildPlatform = platform.windows;
 
     public static void main(String[] args) {
         System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "true");

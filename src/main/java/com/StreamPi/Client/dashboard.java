@@ -1,29 +1,35 @@
 package com.StreamPi.Client;
 
-import javafx.application.Platform;
-import javafx.concurrent.Task;
-
 import java.util.HashMap;
 
 public class dashboard extends dashboardBase{
-    io io;
+    IO io;
+
+    boolean isConnected = false;
 
     public dashboard(HashMap<String, String> config)
     {
         try {
-            io = new io();
+            io = new IO();
 
             setConfig(config);
 
             //load nodes
             loadNodes();
 
-            setProgress(false);
+            new Client(config, this).run();
+
+
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
+    }
+
+    public void getActions()
+    {
+        
     }
 
     @Override
